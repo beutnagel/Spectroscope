@@ -74,7 +74,7 @@ table {
 
 
 body {
-    background-color: #323232;
+    background-color: #5D5A5D;
     color: #ededed;
     font-family: 'Roboto', sans-serif;
     font-weight: 300;
@@ -85,7 +85,7 @@ body {
     /* overflow: hidden; */
 }
 
-img#logo {width: 100px;display: initial;}
+img#logo {width: 400px;display: initial;}
 
 h1 {
     display: inline-block;
@@ -95,7 +95,7 @@ h1 {
     font-size: 2em;
 }
 
-header {background-color: #598e86;padding: 1em;color: #fff;}
+header {background-color: #5D5A5D;padding: 1em;color: #fff;}
 
 section {
     padding: 2em 0 0 0;
@@ -128,3 +128,24 @@ div.colorExample em {
     padding: 2px 0;
     font-size: 13px;
 }
+
+
+    body {counter-reset: fonts;}
+        textarea {width: 30%;height: 400px;}
+        h2 {font-weight: normal;}
+        .font-unit {line-height: 0.7em;}
+        .color-block {display: inline-block;width: 100px; height: 100px;position:relative;}
+        .color-block label {
+            position: absolute;
+            color: black; display: block;
+            bottom: 0;
+            width: 100%;
+            background-color: #ffffff80;
+            text-align: center;
+            padding: 1em 0;
+            font-size: 14px;
+        }
+        .font-unit::before {
+          counter-increment: fonts;              
+          content: counter(fonts) ") "; 
+        }

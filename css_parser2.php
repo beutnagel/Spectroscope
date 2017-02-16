@@ -1,6 +1,5 @@
 <?php 
 namespace Spectroscope;
-
 // Turn off output buffering
 ini_set('output_buffering', 'off');
 // Turn off PHP output compression
@@ -18,11 +17,20 @@ ob_implicit_flush(true);
 //header("Content-type: text/plain");
 header('Cache-Control: no-cache'); // recommended to prevent caching of event data.
  
+/*for($i = 0; $i < 1000; $i++)
+{
+echo ' ';
+}
+         
+ob_flush();
+flush();*/
  
-
-require_once"vendor/autoload.php";
-// require_once"css_color_parser.php";
-// require_once"css_color_object.php";
+/// Now start the program output
+ 
+//echo "Program Output";
+require_once"css_parser_object.php";
+require_once"css_color_parser.php";
+require_once"css_color_object.php";
 
 
 ?>
@@ -32,18 +40,47 @@ require_once"vendor/autoload.php";
 	<title>CSS Parser</title>
 	<link href='https://fonts.googleapis.com/css?family=Roboto:400,300,700' rel='stylesheet' type='text/css'>
 	<link rel="stylesheet" type="text/css" href="style.css">
+	<style type="text/css">
+	body {counter-reset: fonts;}
+		textarea {width: 30%;height: 400px;}
+		h2 {font-weight: normal;}
+		.font-unit {line-height: 0.7em;}
+		.color-block {display: inline-block;width: 100px; height: 100px;position:relative;}
+		.color-block label {
+			position: absolute;
+			color: black; display: block;
+			bottom: 0;
+		    width: 100%;
+		    background-color: #ffffff80;
+		    text-align: center;
+		    padding: 1em 0;
+		    font-size: 14px;
+		}
+		.font-unit::before {
+		  counter-increment: fonts;              
+		  content: counter(fonts) ") "; 
+		}
+	</style>
 </head>
 <body>
 <header>
-	<img id="logo" src="new_logo.png">
+	<img id="logo" src="earth-spectrum_white.svg">
+	<h1>Spectroscope - CSS Analyser</h1>
 </header>
 <!-- <img src="design inspiration/tumblr_nq1q3waC6b1r7g5u4o1_1280.jpg">
  --><?php 
 
 
+
+
+
+
+
+
+
 // NEW CODE!!!!!
 
-$parser = CssParser::getInstance();
+$parser = CssParser::getInstance(); 
 
 
 // which URL to analyse (get ?url=)
@@ -63,28 +100,17 @@ $parser = CssParser::getInstance();
 	echo "<h5>".URL."</h5>";
 
 
-	?>
-<h2>
-	Sources</h2>
-	<?php
-
 
 // load content from URL
 	$urlContent = getFile($url);
 
 // generate DOM for content
 	$dom = $parser->generateDom($urlContent);
-	//$dom->load($urlContent);
+	$dom->load($urlContent);
 
 // find all css files on page
 	$cssFiles = $parser->findCssFiles($dom);
-	echo "<br>number of css files: ". count($cssFiles) ."<br>";
-	foreach ($cssFiles as $fileUrl) {
-        echo $fileUrl."<br><br>";
-/*                ob_flush();
-                flush();
-*/
-	}
+	echo "<br>number of css files: ". count($cssFiles) ."";
 
 // parse all rules in css files
 	$selectors = $declarations = array();
@@ -97,10 +123,6 @@ $parser = CssParser::getInstance();
 	echo " (" . count($selectors) ." rulesets with " . count($declarations) . " declarations)<br>";
 
 
-echo "\n\n";
-var_dump(count($selectors));
-var_dump(count($declarations));
-
 // find all inline styling
 	$inline = array();
 	$inlineStyling = $parser->findInlineStyling($dom);
@@ -108,7 +130,7 @@ var_dump(count($declarations));
 		$declaration = $parser->prepareCSS($declaration);
 		$inline = array_merge($inline,$parser->findDeclarations($declaration));
 	}
-echo "<br>inline styles: ". count($inline) ." declarations<br>";
+	echo "<br>inline styles: ". count($inline) ." declarations<br>";
 
 // add inline declarations to the ones found in css files
 	$declarations = array_merge($declarations, $inline);
@@ -126,17 +148,15 @@ echo "<br>inline styles: ". count($inline) ." declarations<br>";
 // add embedded styles to those already found
 	//var_dump($selectors);
 	//var_dump($parser->findSelectors($embeddedStyling));
-echo "<br>embedded styles: ". count($embeddedStylings) ." instances having " . count($parser->findSelectors($embeddedStyling)) ." declarations with ".count($parser->findDeclarations($embeddedStyling))." rules<br>";
+	echo "<br>embedded styles: ". count($parser->findSelectors($embeddedStyling)) ." with ".count($parser->findDeclarations($embeddedStyling))." rules<br>";
 	$selectors = array_merge($selectors,$parser->findSelectors($embeddedStyling));
 	$declarations = array_merge($declarations,$parser->findDeclarations($embeddedStyling));
 
-	var_dump($embeddedStyling);
-
-var_dump(count($selectors));
-var_dump(count($declarations));
+	//var_dump($embeddedStyling);die();
 
 
-die();
+
+
 	//var_dump($declarations);
 
 	$parser->addDeclarations($declarations);

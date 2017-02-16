@@ -14,8 +14,8 @@ namespace Spectroscope;
 
 
 
-require_once"../css_color_parser.php";
-require_once"../css_color_object.php";
+require_once"../src/css_color_parser.php";
+require_once"../src/css_color_object.php";
 
 
 echo "<pre>";

@@ -12,3 +12,5 @@
 .idea/modules.xml
 
 .idea/workspace.xml
+
+vendor/

@@ -28,6 +28,12 @@ class CssColorObject {
 	}
 
 
+// 	TODO
+//	$color->createObject()->rgb("255,1,42")->alpha(20)->important(true)->display("dark red");
+
+	
+
+	
 	public function __get($name) {
 
         //echo "Get:$name";
