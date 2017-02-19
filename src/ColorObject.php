@@ -1,6 +1,6 @@
 <?php
 namespace Spectroscope;
-class CssColorObject {
+class ColorObject {
 
 	private $hex, $rgb, $hsl, $display, $alpha, $type, $important;
 	public function __construct($color = array()) {

@@ -43,6 +43,33 @@ require_once"vendor/autoload.php";
 
 // NEW CODE!!!!!
 
+
+/*
+ * Interface list
+
+ // Initiate
+		analyse($url|css)
+ 		analyseURL($url)
+ 			loads the urls, analyse css from files, embedded and line
+ 		analyseCSS(css)
+
+ // Settings
+ 		$settings 	array
+
+ // Getters
+ 		getAllResults()		text, colors, layout, box model, animation, 
+ 		getResults(array)	e.g. ("text","colors")
+ 		getResultText()	calls getResults("text")
+
+ // Statistics
+ 		getAllStats()
+ 		getStats(array)		layout, colors, text, declarations, rules, sources(how much from external, % of embedded)
+ 		getStatsLayout()	calls getStats("layout")		
+*/
+
+
+
+
 $parser = CssParser::getInstance();
 
 
@@ -97,10 +124,10 @@ $parser = CssParser::getInstance();
 	echo " (" . count($selectors) ." rulesets with " . count($declarations) . " declarations)<br>";
 
 
-echo "\n\n";
+/*echo "\n\n";
 var_dump(count($selectors));
 var_dump(count($declarations));
-
+*/
 // find all inline styling
 	$inline = array();
 	$inlineStyling = $parser->findInlineStyling($dom);
@@ -130,77 +157,16 @@ echo "<br>embedded styles: ". count($embeddedStylings) ." instances having " . c
 	$selectors = array_merge($selectors,$parser->findSelectors($embeddedStyling));
 	$declarations = array_merge($declarations,$parser->findDeclarations($embeddedStyling));
 
-	var_dump($embeddedStyling);
 
-var_dump(count($selectors));
-var_dump(count($declarations));
-
-
-die();
+//var_dump($selectors);
+//var_dump($declarations);
+//die();
 	//var_dump($declarations);
 
 	$parser->addDeclarations($declarations);
 	$parser->addSelectors($selectors);
 	
-/*	var_dump(count($parser->selectors));
-	var_dump(count($parser->declarations));
-	//var_dump($parser->selectors);
-die();
-*/
 
-/*use MatthiasMullie\Minify;
-
-//ob_start();
-
-$url = "http://www.cchobby.dk";
-if(isset($_GET["url"]) && !empty($_GET["url"])) {
-    $url = $_GET["url"];
-}
-if (!starts_with($url,"http")) {
-    $url = "http://".$url;
-    //echo "added http://<br>";
-}
-//var_dump($url);
-echo "<h5>".$url."</h5>";
-$urlContent = getFile($url);
-
-// load dom
-include_once('htmldom.php');
-include_once('htmldomnode.php');
-//use Yangqi\Htmldom;
-$dom = new \Yangqi\Htmldom\Htmldom();
-
-$dom->load($urlContent);
-
-// find css files
-
-$cssFiles = array();
-$linkTags = $dom->find('link[rel]');
-//echo "<br>antal css filer: ". count($linkTags) ."<br>";
-foreach ($linkTags as $tag) {
-	//*echo $tag->rel;
-	// check if rel is stylesheet (and not e.g. canonical)
-	if(starts_with($tag->rel,"stylesheet")) {
-		//*echo "stylesheet found<br>";
-		//*echo $tag->href."<br>";
-		$cssUrl = $tag->href;
-		if (!starts_with($cssUrl,"http")) {
-			$cssUrl = $url."/".ltrim($cssUrl,'/');
-		}
-		//*echo $cssUrl."<br>";
-		if(!in_array($cssUrl, $cssFiles)) {
-			//*echo "save in array<br>";
-			$cssFiles[] = $cssUrl;
-		} else {
-			//*echo "already in array!<br>";
-		}
-		echo "<p>".$cssUrl."</p>";
-		ob_flush();
-		flush();
-		//sleep(3);
-	}
-}
-*/
 
 // set up stats
 $stats = array(
@@ -223,6 +189,17 @@ $stats = array(
 	"color" => array(),
 	"background-color" => array(),
 );
+
+/* Get unique declarations */
+
+$stats["declarations"]["unique"] = $result = array_unique($declarations);
+//var_dump($stats);
+
+
+
+
+
+
 
 // Inline styling
 // TODO add stats to this
@@ -374,7 +351,7 @@ foreach ($stats["fonts"]["sizes"] as $unit => $array) {
 		$displayUnit = $unit;
 		// if no unit is specified
 		if($unit === "none") {$displayUnit = "";}
-		?><h4 class="font-unit font-unit-<?php echo $unit; ?>" style="font-size:<?php echo $value . $unit?>">Font size <?php echo $value.$displayUnit?></h4><?php
+		?><h4 class="font-unit font-unit-<?php echo $unit; ?>" style="font-size:<?php //echo $value . $unit?>">Font size <?php echo $value.$displayUnit?></h4><?php
 		ob_flush();
 		flush();
 	}

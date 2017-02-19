@@ -1,21 +1,21 @@
 <?php
 namespace Spectroscope;
-class CssColorParser {
+class ColorParser {
 	
 	public static $instance;
 	
 	public static function getInstance()
 	{
-	    if (null === CssColorParser::$instance) {
-	        CssColorParser::$instance = new CssColorParser();
+	    if (null === ColorParser::$instance) {
+	        ColorParser::$instance = new ColorParser();
 	    }
 	    
-	    return CssColorParser::$instance;
+	    return ColorParser::$instance;
 	}
 
 
 	/**
-	  * This function is responsible for creating the CssColorObject. It resolved the format of the received color 
+	  * This function is responsible for creating the ColorObject. It resolved the format of the received color 
 	  *	and converts into other color formats.
 	  *
 	  */
@@ -178,7 +178,7 @@ class CssColorParser {
 				}
 			}
 
-		return new CssColorObject(array(
+		return new ColorObject(array(
 				"display" 	=> 	$display,
 				"hex" 		=> 	$hex,
 				"rgb" 		=> 	$rgb,

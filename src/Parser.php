@@ -2,10 +2,10 @@
 namespace Spectroscope;
     //use MatthiasMullie\Minify;
     /**
-     * Class CssParser
+     * Class Parser
      * @package Spectroscope
      */
-    class CssParser {
+    class Parser {
 
 	/**
      * @var Singleton The reference to instance of this class
@@ -19,11 +19,11 @@ namespace Spectroscope;
      */
     public static function getInstance()
     {
-        if (null === CssParser::$instance) {
-            CssParser::$instance = new static();
+        if (null === \Spectroscope\Parser::$instance) {
+            \Spectroscope\Parser::$instance = new \Spectroscope\Parser();
         }
         
-        return CssParser::$instance;
+        return \Spectroscope\Parser::$instance;
     }
 
 
