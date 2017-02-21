@@ -57,7 +57,7 @@ require_once"vendor/autoload.php";
  		$settings 	array
 
  // Getters
- 		getAllResults()		text, colors, layout, box model, animation, 
+ 		getAllResults()		text, colors, layout, box model, animation, backgroundImages, prefixes 
  		getResults(array)	e.g. ("text","colors")
  		getResultText()	calls getResults("text")
 
@@ -70,7 +70,7 @@ require_once"vendor/autoload.php";
 
 
 
-$parser = CssParser::getInstance();
+$parser = Parser::getInstance();
 
 
 // which URL to analyse (get ?url=)
@@ -380,7 +380,7 @@ foreach ($stats["declarations"]["unique"] as $declaration) {
 	//var_dump($declaration);
 }	//die();
 
-$sorted = (CssColorParser::getInstance()->sortGreys($stats["background-color"]));
+$sorted = (ColorParser::getInstance()->sortGreys($stats["background-color"]));
 ?>
 
 
@@ -806,7 +806,7 @@ function addToDeclarations($arr,$stats) {
 // Sort hex color values
 function cf_sort_hex_colors($colors) {
 	//var_dump($colors); die();
-	$colorParser = CssColorParser::getInstance();
+	$colorParser = ColorParser::getInstance();
 //die($colorParser->resolveNamedColor("white"));
 
 	$map = array(

@@ -14,3 +14,9 @@
 .idea/workspace.xml
 
 vendor/
+
+build/
+
+composer.lock
+
+config.codekit3
