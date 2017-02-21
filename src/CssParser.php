@@ -67,22 +67,13 @@ namespace Spectroscope;
 
 
 
-        /**
-         * @param $name
-         *
-         * @return mixed
-         */
-    public function __get($name) {
-        return $this->$name;
-    }
-
 
         /**
          * @param $css
          *
          * @return string preparedCss
          */
-    public function prepareCSS($css)
+    private function prepareCSS($css)
     {
         // 1) Minify the css as to remove all coments and ensure unity in format
         $minifier = new \MatthiasMullie\Minify\CSS($css);
@@ -101,7 +92,7 @@ namespace Spectroscope;
          *
          * @return \simplehtmldom_1_5\simple_html_dom
          */
-    public function generateDom($content)
+    private function generateDom($content)
     {
         $dom = new \Sunra\PhpSimple\HtmlDomParser;
         return $dom::str_get_html( $content );
@@ -114,7 +105,7 @@ namespace Spectroscope;
          *
          * @return array list of css file urls
          */
-    public function findCssFiles($dom) {
+    private function findCssFiles($dom) {
         $cssFiles = array();
         $linkTags = $dom->find('link[rel=stylesheet]');
 
@@ -149,7 +140,7 @@ namespace Spectroscope;
          *
          * @return array
          */
-    public function findInlineStyling($dom)
+    private function findInlineStyling($dom)
     {
         $styles = array();
         $inline = $dom->find('*[style]');
@@ -166,7 +157,7 @@ namespace Spectroscope;
          *
          * @return array
          */
-    public function findEmbeddedStyling($dom)
+    private function findEmbeddedStyling($dom)
     {
         $styles = array();
         $embedded = $dom->find('style');
@@ -193,7 +184,7 @@ namespace Spectroscope;
          *
          * @return array
          */
-    public function findSelectors($preparedCss) {
+    private function findSelectors($preparedCss) {
         //$preparedCSS;
 
         // Regex
@@ -227,7 +218,7 @@ namespace Spectroscope;
          *
          * @return array
          */
-    public function findDeclarations($preparedCSS)
+    private function findDeclarations($preparedCSS)
     {
         $declarations = preg_grep("/^(\S+:\S+|\S+\(\S+\)?)|\S+\.+\S+;$/i", explode("\n", $preparedCSS));
         //var_dump($declarations);die();
@@ -244,7 +235,7 @@ namespace Spectroscope;
         /**
          * @param $arr
          */
-        public function addDeclarations($arr)
+        private function addDeclarations($arr)
     {
       if(is_array($arr)) {
             $this->declarations = array_merge($this->declarations, $arr);
@@ -256,7 +247,7 @@ namespace Spectroscope;
         /**
          * @param $arr
          */
-        public function addSelectors($arr)
+        private function addSelectors($arr)
     {
       if(is_array($arr)) {
             $this->selectors = array_merge($this->selectors, $arr);
@@ -271,7 +262,7 @@ namespace Spectroscope;
          *
          * @return array
          */
-    public function getUnique($name) {
+    private function getUnique($name) {
         return array_unique($this->$name);
     }
 
@@ -311,7 +302,7 @@ namespace Spectroscope;
          *
          * @return bool
          */
-    public function starts_with($str,$substring, $caseSensitive = true)
+    private function starts_with($str,$substring, $caseSensitive = true)
     {
         $substringLength = \mb_strlen($substring);
         $startOfStr = \mb_substr($str, 0, $substringLength);
@@ -335,7 +326,7 @@ namespace Spectroscope;
          *
          * @return string
          */
-    public function human_filesize($bytes, $decimals = 2)
+    private function human_filesize($bytes, $decimals = 2)
     {
         $size = array('B','kB','MB','GB','TB','PB','EB','ZB','YB');
         $factor = floor((strlen($bytes) - 1) / 3);
@@ -348,7 +339,7 @@ namespace Spectroscope;
          *
          * @return mixed
          */
-    public function getFile($url)
+    private function getFile($url)
     {
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -361,7 +352,7 @@ namespace Spectroscope;
     }
 
 
-    public function sortByParent($selectors)
+    private function sortByParent($selectors)
     {
         //$selectors = array("h1 a","h1 p","h1 a, h1 p");
         $selector_parents = array();
