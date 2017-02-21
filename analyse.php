@@ -43,7 +43,6 @@
 $url = "testserver.dev";
 
         $parser = new CssParser();
-        var_dump($parser);
         $parser->analyse($url);
 
 

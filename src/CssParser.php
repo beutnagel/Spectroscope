@@ -104,7 +104,7 @@ class CssParser {
          */
         private function analyseUrl($url)
         {
-            echo "analysing a URL";
+            //echo "analysing a URL";
 
             // TODO handle http/https
             $this->page_url = $url;
@@ -113,9 +113,12 @@ class CssParser {
             $page = $this->getFile($url);
             $dom = $this->generateDom($page);
             $files = $this->findCssFiles($dom);
-            var_dump($files);
+            //var_dump($files);
             foreach($files as $file) {
-                $this->result["files"][$file]["prepared_css"] = $this->prepareCSS($this->getFile($file));
+                $this->result["files"][$file]["raw_css"] = $this->getFile($file);
+                $this->result["files"][$file]["prepared_css"] = $this->prepareCSS($this->result["files"][$file]["raw_css"]);
+                $this->result["files"][$file]["selectors"] = $this->findSelectors($this->result["files"][$file]["prepared_css"]);
+
             }
             var_dump($this->result);
         }
@@ -134,6 +137,21 @@ class CssParser {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         /**
          * Prepare the CSS for the analyser by minimizing and ensuring uniformity in format
          * @param $css
@@ -142,14 +160,35 @@ class CssParser {
          */
     private function prepareCSS($css)
     {
+        //var_dump($css);
+
+        // Add linenumbers to source css
+        $arr = preg_split("/\r\n|\n|\r/", $css);
+        $new_css = "";
+
+        for($i=0; $i<count($arr);$i++){
+            $line = $i+1;
+            $new_css .= "⚜️".$line."⚜️".$arr[$i]."\n";
+        }
+        // remove empty lines left by the source
+        $new_css = preg_replace("/(⚜️\d+⚜️\n)/u", "", $new_css);
+
+
+        //var_dump($new_css);die();
+
         // 1) Minify the css as to remove all coments and ensure uniformity in format
-        $minifier = new \MatthiasMullie\Minify\CSS($css);
+        $minifier = new \MatthiasMullie\Minify\CSS($new_css);
         $minified = $minifier->minify();
 
         // 2) Modify structure by adding linebreaks again
         $minified = str_ireplace("{", "{\n", $minified);    // make { stand on own line
         $minified = str_ireplace("}", "\n}\n", $minified);  // make double line break to next rule
         $minified = str_ireplace(";", ";\n", $minified);    // make each rule be on its onw line
+
+
+        // remove empty lines left over by moving the } to the next line
+        $minified = preg_replace("/(⚜️\d+⚜️\n)/u", "", $minified);
+        //var_dump($minified);die();
         return $minified;
     }
 
@@ -184,8 +223,8 @@ class CssParser {
         foreach ($linkTags as $tag) {
             // check if rel is stylesheet (and not e.g. canonical)
             if($this->starts_with($tag->rel,"stylesheet")) {
-                echo "stylesheet found<br>";
-                echo $tag->href."<br>";
+                //echo "stylesheet found<br>";
+                //echo $tag->href."<br>";
                 $cssUrl = $tag->href;
 
                 // make absolute url of hrefs starting with //
@@ -257,6 +296,8 @@ class CssParser {
          * @return array
          */
     private function findSelectors($preparedCss) {
+        // TODO handle multi selectors, e.g. header, h1, h2 {
+        // TODO also take into account that they can span several lines
         //$preparedCSS;
 
         // Regex
@@ -264,25 +305,32 @@ class CssParser {
         // preg_match("/^(.+){/i", $input_line, $output_array);
         // declarations: ^(\S+:\S+|\S+\(\S+\)?)|\S+\.+\S+;$
         // preg_match("/^(\S+:\S+|\S+\(\S+\)?)|\S+\.+\S+;$/i", $input_line, $output_array);
-
-        $selectors = $temp = array();
+       // var_dump($preparedCss);
+        $selectors = $rules = array();
         $selectors = preg_grep("/^(.+){/i", explode("\n", $preparedCss));
-
+       // var_dump($selectors);//die();
         foreach ($selectors as $rule) { 
             //var_dump($rule);
+
+
+            // get line number value
+            preg_match("/⚜️(\d+)⚜️/u", $rule, $matches);
+            $linenumber = $matches[1];
+
+            // replace line number from rule line
+            $rule = str_ireplace("⚜️".$linenumber."⚜️","",$rule);
+
+            // format rule lines
             $rule = str_ireplace("  "," ",$rule);
             $rule = str_ireplace(" {","",$rule);
             $rule = str_ireplace("{ ","",$rule);
             $rule = str_ireplace("{","",$rule);
-            $temp[] = $rule;
-            //var_dump($rule);
-            //echo "<br><br>";
-        }
-        //die();
 
-        //var_dump($selectors);die();
-        // 
-        return $temp;
+            // save rule line
+            $rules[$linenumber] = $rule;
+        }
+
+        return $rules;
     }
 
         /**
