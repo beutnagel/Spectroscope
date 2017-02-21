@@ -29,19 +29,33 @@ namespace Spectroscope;
  		getStatsLayout()	calls getStats("layout")
 */
 
+    /*
+    HOW TO KEEP LINENUMBERS?
+    1) Prepare source
+        go through source files and change all linebreaks to ⚜️(number)⚜️, e.g. ⚜️1⚜️
+    2) Prepare CSS
+        prepare the CSS but keep the ⚜️(number)⚜️ in there
+    3) Analyse the CSS
+        make the analyser ignore ⚜️(number)⚜️
+        look up ⚜️(number)⚜️ whenever need to output a line number
+    */
 
+
+/**
+ * Class CssParser
+ * @package Spectroscope
+ */
+/**
+ * Class CssParser
+ * @package Spectroscope
+ */
+class CssParser {
 
     /**
-     * Class CssParser
-     * @package Spectroscope
-     */
-    class CssParser {
-
-	/**
      * @var Singleton The reference to instance of this class
      */
     private static $instance;
-    
+
     /**
      * Returns the instance of this class.
      *
@@ -52,30 +66,83 @@ namespace Spectroscope;
         if (null === CssParser::$instance) {
             CssParser::$instance = new static();
         }
-        
+
         return CssParser::$instance;
     }
 
 
 
+    private $page_url;  // The URL of the page being analysed
+    private $result;    // All the results from analysing
 
 
 
+    /*
+     * ---------------------------------------------------------------------------------------------------------------------
+     *      Initiate
+     * ---------------------------------------------------------------------------------------------------------------------
+     */
 
 
+    /**
+     * Main entry point for the class. Determines whether 1subjec is a URL or a string of CSS
+     * @param URL|CSS $subject
+     */
+    public function analyse($subject)
+    {
+        //  first check if CSS, does it contain a {
+        if(strpos($subject,":")!==false) {
+            $this->analyseCSS($subject);
+        } else {
+            $this->analyseUrl($subject);
+        }
+    }
+
+
+        /**
+         * @param $url
+         */
+        private function analyseUrl($url)
+        {
+            echo "analysing a URL";
+
+            // TODO handle http/https
+            $this->page_url = $url;
+
+
+            $page = $this->getFile($url);
+            $dom = $this->generateDom($page);
+            $files = $this->findCssFiles($dom);
+            var_dump($files);
+            foreach($files as $file) {
+                $this->result["files"][$file]["prepared_css"] = $this->prepareCSS($this->getFile($file));
+            }
+            var_dump($this->result);
+        }
+
+
+        /**
+         * @param $css
+         */
+        private function analyseCSS($css)
+        {
+            echo "analysing CSS";
+            $css = $this->prepareCSS($css);
+        }
 
 
 
 
 
         /**
+         * Prepare the CSS for the analyser by minimizing and ensuring uniformity in format
          * @param $css
          *
          * @return string preparedCss
          */
     private function prepareCSS($css)
     {
-        // 1) Minify the css as to remove all coments and ensure unity in format
+        // 1) Minify the css as to remove all coments and ensure uniformity in format
         $minifier = new \MatthiasMullie\Minify\CSS($css);
         $minified = $minifier->minify();
 
@@ -94,8 +161,13 @@ namespace Spectroscope;
          */
     private function generateDom($content)
     {
-        $dom = new \Sunra\PhpSimple\HtmlDomParser;
-        return $dom::str_get_html( $content );
+        $dom = \Sunra\PhpSimple\HtmlDomParser::str_get_html( $content );
+        if(is_object($dom)) {
+            return $dom;
+        } else {
+            // TODO Add error handling
+            echo "ERROR: NO DOM OBJECT";
+        }
     }
 
 
@@ -122,7 +194,7 @@ namespace Spectroscope;
                 }
                 // add site url to relative files
                 else if (!$this->starts_with($cssUrl,"http")) {
-                    $cssUrl = URL."/".ltrim($cssUrl,'/');
+                    $cssUrl = $this->page_url."/".ltrim($cssUrl,'/');
                 }
 
                 // add to list of files
@@ -289,7 +361,11 @@ namespace Spectroscope;
 
 
 
-
+/*
+ * ---------------------------------------------------------------------------------------------------------------------
+ *      HELPER FUNCTIONS
+ * ---------------------------------------------------------------------------------------------------------------------
+ */
 
 
 
@@ -352,6 +428,11 @@ namespace Spectroscope;
     }
 
 
+    /**
+     * @param $selectors
+     *
+     * @return array
+     */
     private function sortByParent($selectors)
     {
         //$selectors = array("h1 a","h1 p","h1 a, h1 p");
@@ -415,6 +496,11 @@ namespace Spectroscope;
     }
 
 
+    /**
+     * @param $selector
+     *
+     * @return string
+     */
     private function determineParent($selector)
     {
         // if selector has a " " use the first part as parent
