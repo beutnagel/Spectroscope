@@ -118,7 +118,7 @@ class CssParser {
                 $this->result["files"][$file]["raw_css"] = $this->getFile($file);
                 $this->result["files"][$file]["prepared_css"] = $this->prepareCSS($this->result["files"][$file]["raw_css"]);
                 $this->result["files"][$file]["selectors"] = $this->findSelectors($this->result["files"][$file]["prepared_css"]);
-
+                $this->result["files"][$file]["declarations"] = $this->findDeclarations($this->result["files"][$file]["prepared_css"]);
             }
             var_dump($this->result);
         }
@@ -170,9 +170,51 @@ class CssParser {
             $line = $i+1;
             $new_css .= "⚜️".$line."⚜️".$arr[$i]."\n";
         }
+
+
+
+
+
         // remove empty lines left by the source
         $new_css = preg_replace("/(⚜️\d+⚜️\n)/u", "", $new_css);
 
+
+        // handle declarations that were on the same line and therefore doesn't have a source line number.
+        // give them the same one as their selector line
+            $new_css = str_ireplace("}","}\n",$new_css);
+            $new_css = str_ireplace("{","{\n",$new_css);
+            $new_css = str_ireplace(";",";\n",$new_css);
+            $new_css = explode("\n",$new_css);  // make array
+            $linenumber;
+            //$i=0;
+            $new_css = array_filter($new_css); // remove empty array elements
+            $new_css = array_values($new_css); // reset array index
+            $i = 0;
+        //var_dump($new_css);die();
+        // TODO take into account the line number of parrents when there are pseudo selectors, github issue#1
+            foreach ($new_css as $line) {
+                // get line number value
+                preg_match("/⚜️(\d+)⚜️/u", $line, $matches);
+                if(!empty($matches[1])){
+                    // if there is a line number already, update $linenumber to use that
+                    $linenumber = $matches[1];
+                }
+                if(strpos($line,"⚜️")!==false) {
+                    // lines that have a linenumber
+                } else {
+                    // no line number
+                    if(strpos($line,"{")===false && strpos($line,"}")===false) {
+                       // make sure it isn't { or } lines
+                        // add linenumber
+                        $line = "⚜".$linenumber."⚜ ".$line;
+                    }
+                }
+                // update the line
+                $new_css[$i] = $line;
+                $i++;
+
+            }
+            $new_css = implode("\n",$new_css); // make it a string again
 
         //var_dump($new_css);die();
 
@@ -188,7 +230,7 @@ class CssParser {
 
         // remove empty lines left over by moving the } to the next line
         $minified = preg_replace("/(⚜️\d+⚜️\n)/u", "", $minified);
-        //var_dump($minified);die();
+        var_dump($minified);die();
         return $minified;
     }
 
@@ -296,8 +338,6 @@ class CssParser {
          * @return array
          */
     private function findSelectors($preparedCss) {
-        // TODO handle multi selectors, e.g. header, h1, h2 {
-        // TODO also take into account that they can span several lines
         //$preparedCSS;
 
         // Regex
@@ -306,12 +346,21 @@ class CssParser {
         // declarations: ^(\S+:\S+|\S+\(\S+\)?)|\S+\.+\S+;$
         // preg_match("/^(\S+:\S+|\S+\(\S+\)?)|\S+\.+\S+;$/i", $input_line, $output_array);
        // var_dump($preparedCss);
+
+        // Handle combines selectors by making them appear on their own line
+        // and add a { to conform to rest of functionality.
+        // .e.g. h1,h2,h3 =>
+        //       h1{
+        //       h2{
+        //       h3{
+        $preparedCss = str_ireplace(",","{\n",$preparedCss);
+
+
         $selectors = $rules = array();
         $selectors = preg_grep("/^(.+){/i", explode("\n", $preparedCss));
-       // var_dump($selectors);//die();
+        //var_dump($selectors);//die();
         foreach ($selectors as $rule) { 
             //var_dump($rule);
-
 
             // get line number value
             preg_match("/⚜️(\d+)⚜️/u", $rule, $matches);
@@ -330,6 +379,7 @@ class CssParser {
             $rules[$linenumber] = $rule;
         }
 
+            //var_dump($rules);die();
         return $rules;
     }
 
@@ -340,8 +390,55 @@ class CssParser {
          */
     private function findDeclarations($preparedCSS)
     {
+
+
+
+        //var_dump($preparedCSS);
+        //$declarations = preg_grep("/{(.*)}/i", explode("\n", $preparedCss));
+
+        $lines = explode("\n",$preparedCSS);
+        $declarations = array();
+        foreach ($lines as $line) {
+
+            if(strpos($line,"{")) {
+                //echo "here";
+                //var_dump($line);die();
+            }
+            if( strpos($line,":")
+                && strpos($line,"::") ===false // no pseudo element selectors
+                && strpos($line,":active") ===false // no pseudo class selectors
+                && strpos($line,":checked") ===false
+                && strpos($line,":disabled") ===false
+                && strpos($line,":empty") ===false
+                && strpos($line,":enabled") ===false
+                && strpos($line,":first-child") ===false
+                && strpos($line,":first-of-type") ===false
+                && strpos($line,":focus") ===false
+                && strpos($line,":hover") ===false
+                && strpos($line,":in-range") ===false
+                && strpos($line,":invalid") ===false
+                && strpos($line,":lang(") ===false
+                && strpos($line,":last-") ===false
+                && strpos($line,":link") ===false
+                && strpos($line,":not(") ===false
+                && strpos($line,":nth-") ===false
+                && strpos($line,":only-") ===false
+                && strpos($line,":optional") ===false
+                && strpos($line,":out-of-range") ===false
+                && strpos($line,":read-only") ===false
+                && strpos($line,":read-write") ===false
+                && strpos($line,":required") ===false
+                && strpos($line,":root") ===false
+                && strpos($line,":target") ===false
+                && strpos($line,":valid") ===false
+                && strpos($line,":visited") ===false
+            ) {
+                $declarations[] = $line;
+            }
+        }
+
+        var_dump($declarations);die();
         $declarations = preg_grep("/^(\S+:\S+|\S+\(\S+\)?)|\S+\.+\S+;$/i", explode("\n", $preparedCSS));
-        //var_dump($declarations);die();
         $temp = array();
         // remove the ;
         foreach ($declarations as $dec) {
