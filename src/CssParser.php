@@ -168,7 +168,7 @@ class CssParser {
 
         for($i=0; $i<count($arr);$i++){
             $line = $i+1;
-            $new_css .= "⚜️".$line."⚜️".$arr[$i]."\n";
+            $new_css .= "⚜".$line."⚜".$arr[$i]."\n";
         }
 
 
@@ -176,12 +176,12 @@ class CssParser {
 
 
         // remove empty lines left by the source
-        $new_css = preg_replace("/(⚜️\d+⚜️\n)/u", "", $new_css);
+        $new_css = preg_replace("/(⚜\d+⚜\n)/u", "", $new_css);
 
 
         // handle declarations that were on the same line and therefore doesn't have a source line number.
         // give them the same one as their selector line
-            $new_css = str_ireplace("}","}\n",$new_css);
+            $new_css = str_ireplace("}","\n}\n",$new_css);
             $new_css = str_ireplace("{","{\n",$new_css);
             $new_css = str_ireplace(";",";\n",$new_css);
             $new_css = explode("\n",$new_css);  // make array
@@ -190,16 +190,15 @@ class CssParser {
             $new_css = array_filter($new_css); // remove empty array elements
             $new_css = array_values($new_css); // reset array index
             $i = 0;
-        //var_dump($new_css);die();
-        // TODO take into account the line number of parrents when there are pseudo selectors, github issue#1
+       // var_dump($new_css);die();
             foreach ($new_css as $line) {
                 // get line number value
-                preg_match("/⚜️(\d+)⚜️/u", $line, $matches);
+                preg_match("/⚜(\d+)⚜/u", $line, $matches);
                 if(!empty($matches[1])){
                     // if there is a line number already, update $linenumber to use that
                     $linenumber = $matches[1];
                 }
-                if(strpos($line,"⚜️")!==false) {
+                if(strpos($line,"⚜")!==false) {
                     // lines that have a linenumber
                 } else {
                     // no line number
@@ -229,8 +228,8 @@ class CssParser {
 
 
         // remove empty lines left over by moving the } to the next line
-        $minified = preg_replace("/(⚜️\d+⚜️\n)/u", "", $minified);
-        var_dump($minified);die();
+        $minified = preg_replace("/(⚜\d+⚜\n)/u", "", $minified);
+        //var_dump($minified);die();
         return $minified;
     }
 
@@ -363,11 +362,11 @@ class CssParser {
             //var_dump($rule);
 
             // get line number value
-            preg_match("/⚜️(\d+)⚜️/u", $rule, $matches);
+            preg_match("/⚜(\d+)⚜/u", $rule, $matches);
             $linenumber = $matches[1];
 
             // replace line number from rule line
-            $rule = str_ireplace("⚜️".$linenumber."⚜️","",$rule);
+            $rule = str_ireplace("⚜".$linenumber."⚜","",$rule);
 
             // format rule lines
             $rule = str_ireplace("  "," ",$rule);
@@ -393,17 +392,15 @@ class CssParser {
 
 
 
-        //var_dump($preparedCSS);
-        //$declarations = preg_grep("/{(.*)}/i", explode("\n", $preparedCss));
 
         $lines = explode("\n",$preparedCSS);
         $declarations = array();
         foreach ($lines as $line) {
 
-            if(strpos($line,"{")) {
+/*            if(strpos($line,"{")) {
                 //echo "here";
                 //var_dump($line);die();
-            }
+            }*/
             if( strpos($line,":")
                 && strpos($line,"::") ===false // no pseudo element selectors
                 && strpos($line,":active") ===false // no pseudo class selectors
@@ -432,20 +429,48 @@ class CssParser {
                 && strpos($line,":target") ===false
                 && strpos($line,":valid") ===false
                 && strpos($line,":visited") ===false
+
+                // legacy selectors from CSS 1 + 2
+                // https://www.w3.org/TR/selectors/#pseudo-elements
+                && strpos($line,":first-line") ===false
+                && strpos($line,":first-letter") ===false
+                && strpos($line,":before") ===false
+                && strpos($line,":after") ===false
+
+
+
             ) {
-                $declarations[] = $line;
+                // remove multiple linenumbers from line and keep only the first one.
+                // get the first line number
+                preg_match("/⚜\d+⚜/", $line, $number);
+                $linenumber = str_replace("⚜","",$number[0]);
+                // remove all line numbers
+                $line = preg_replace("/⚜\d+⚜/", "", $line);
+                // remove whitespace in beginning of line
+                $line = ltrim($line);
+
+                // divide the declaration into property and value
+                // + remove whitespace and ; from value
+                $line = explode(":",$line);
+                $result = array(
+                    "property" => $line[0],
+                    "value" => ltrim(str_replace(";","",$line[1])),
+                    "line" => $linenumber,
+                );
+                $declarations[] = $result;
             }
         }
 
-        var_dump($declarations);die();
-        $declarations = preg_grep("/^(\S+:\S+|\S+\(\S+\)?)|\S+\.+\S+;$/i", explode("\n", $preparedCSS));
+
+        //var_dump($declarations);die();
+/*        $declarations = preg_grep("/^(\S+:\S+|\S+\(\S+\)?)|\S+\.+\S+;$/i", explode("\n", $preparedCSS));
         $temp = array();
         // remove the ;
         foreach ($declarations as $dec) {
             $temp[] = str_ireplace(";","",$dec);
         }
-        //var_dump($temp); die();
-        return $temp;
+        var_dump($temp); die();*/
+        return $declarations;
     }
 
 
