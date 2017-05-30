@@ -96,6 +96,8 @@ class CssParser {
         } else {
             $this->analyseUrl($subject);
         }
+        return $this->result;
+
     }
 
 
@@ -120,7 +122,7 @@ class CssParser {
                 $this->result["files"][$file]["selectors"] = $this->findSelectors($this->result["files"][$file]["prepared_css"]);
                 $this->result["files"][$file]["declarations"] = $this->findDeclarations($this->result["files"][$file]["prepared_css"]);
             }
-            var_dump($this->result);
+           // var_dump($this->result);
         }
 
 
@@ -202,11 +204,15 @@ class CssParser {
                     // lines that have a linenumber
                 } else {
                     // no line number
-                    if(strpos($line,"{")===false && strpos($line,"}")===false) {
+
+/*                    if(strpos($line,"{")===false && strpos($line,"}")===false) {
                        // make sure it isn't { or } lines
                         // add linenumber
-                        $line = "⚜".$linenumber."⚜ ".$line;
-                    }
+                       // $line = "⚜".$linenumber."⚜ ".$line;
+                    }*/
+
+                    $line = "⚜".$linenumber."⚜ ".$line;
+
                 }
                 // update the line
                 $new_css[$i] = $line;
@@ -229,6 +235,13 @@ class CssParser {
 
         // remove empty lines left over by moving the } to the next line
         $minified = preg_replace("/(⚜\d+⚜\n)/u", "", $minified);
+
+        // if two lines have been put together, separate them (this can happen when comments have
+        // been removed in minifying process)
+        $minified = str_replace("⚜ ⚜","⚜\n⚜", $minified);
+        $minified = str_replace("⚜⚜","⚜\n⚜", $minified);
+
+
         //var_dump($minified);die();
         return $minified;
     }
@@ -339,6 +352,7 @@ class CssParser {
     private function findSelectors($preparedCss) {
         //$preparedCSS;
 
+            //var_dump($preparedCss);die();
         // Regex
         // ruleSets: ^(.+){
         // preg_match("/^(.+){/i", $input_line, $output_array);
@@ -346,18 +360,56 @@ class CssParser {
         // preg_match("/^(\S+:\S+|\S+\(\S+\)?)|\S+\.+\S+;$/i", $input_line, $output_array);
        // var_dump($preparedCss);
 
+        //$selectors = preg_grep("/^(.+){/i", explode("\n", $preparedCss));
+
+        // use linenumber if present, else use previous line number
+       // $linenumber = 1;
+
+
+        //var_dump($selectors);die();
+
+
+
         // Handle combines selectors by making them appear on their own line
         // and add a { to conform to rest of functionality.
         // .e.g. h1,h2,h3 =>
         //       h1{
         //       h2{
         //       h3{
-        $preparedCss = str_ireplace(",","{\n",$preparedCss);
+        //$preparedCss = str_ireplace(",","{\n",$preparedCss);
 
 
         $selectors = $rules = array();
+        //var_dump($preparedCss);
         $selectors = preg_grep("/^(.+){/i", explode("\n", $preparedCss));
-        //var_dump($selectors);//die();
+
+        $i = 0;
+        // remove this string from array because the components of this string is already in the array
+        foreach ($selectors as $rule) {
+            $rule = rtrim(str_replace("{","",$rule));
+
+            if(substr_count($rule,"⚜")>2) {
+                //echo "more than one linenumber";
+                $parts = explode(",",$rule);
+                $linenumber = 1;
+                foreach ($parts as $part) {
+                    if(substr_count($part,"⚜")>0) {
+                        preg_match("/⚜(\d+)⚜/u", $part, $matches);
+                        $linenumber = $matches[1];
+                    } else {
+                        $part = "⚜".$linenumber."⚜".ltrim($part);
+                    }
+                    //var_dump($part);
+                    $new_selectors[] = $part;
+
+                }
+            } else {
+                $new_selectors[] = $rule;
+            }
+
+        }
+        return $new_selectors;
+        //var_dump($new_selectors);die();
         foreach ($selectors as $rule) { 
             //var_dump($rule);
 
@@ -365,6 +417,51 @@ class CssParser {
             preg_match("/⚜(\d+)⚜/u", $rule, $matches);
             $linenumber = $matches[1];
 
+
+            var_dump($rule);
+            // remove multiple linenumbers from line and keep only the first one.
+            // get the first line number
+            preg_match("/⚜\d+⚜/", $rule, $number);
+            $linenumber = str_replace("⚜","",$number[0]);
+            // remove all line numbers
+            $line = preg_replace("/⚜\d+⚜/", "", $rule);
+            // remove whitespace in beginning of line
+            $line = ltrim($line);
+
+            // format rule lines
+            $line = str_ireplace("  "," ",$line);
+            $line = str_ireplace(" {","",$line);
+            $line = str_ireplace("{ ","",$line);
+            $line = str_ireplace("{","",$line);
+
+           // var_dump($line);die();
+
+            $rules[] = array(
+                "line" => $linenumber,
+                "selectors" => $line,
+            );
+            /*return true;
+
+            // divide the declaration into property and value
+            // + remove whitespace and ; from value
+            $line = explode(":",$line);
+            $rules[] = array(
+                "property" => $line[0],
+                "value" => ltrim(str_replace(";","",$line[1])),
+                "line" => $linenumber,
+            );
+
+
+
+
+
+
+
+
+
+
+
+            // Clean up the rules (remove line numbers)
             // replace line number from rule line
             $rule = str_ireplace("⚜".$linenumber."⚜","",$rule);
 
@@ -376,6 +473,8 @@ class CssParser {
 
             // save rule line
             $rules[$linenumber] = $rule;
+
+            */
         }
 
             //var_dump($rules);die();

@@ -20,7 +20,8 @@
         "ext-zlib": "*",
         "ext-curl": "*",
         "matthiasmullie/minify": "^1.3",
-        "sunra/php-simple-html-dom-parser": "1.5.1"
+        "sunra/php-simple-html-dom-parser": "1.5.1",
+        "danmichaelo/coma": "*"
     },
     "require-dev": {
         "phpunit/phpunit": "5.6.*"
