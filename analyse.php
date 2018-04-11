@@ -111,7 +111,7 @@ foreach ($results as $result) {
 </head>
 <body>
     <header>
-        <img id="logo" src="new_logo.png">
+        <img id="logo" src="newer-logo.png">
     </header><pre>
     <?php
 
