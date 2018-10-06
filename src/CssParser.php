@@ -34,7 +34,7 @@ namespace Spectroscope;
     1) Prepare source
         go through source files and change all linebreaks to ⚜️(number)⚜️, e.g. ⚜️1⚜️
     2) Prepare CSS
-        prepare the CSS but keep the ⚜️(number)⚜️ in there
+        prepare the CSS (e.g. minify, etc) but keep the ⚜️(number)⚜️ in there
     3) Analyse the CSS
         make the analyser ignore ⚜️(number)⚜️
         look up ⚜️(number)⚜️ whenever need to output a line number
